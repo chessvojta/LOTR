@@ -37,11 +37,32 @@ recommended = struct2table(recommended); % Put the data in a table
 recommended = recommended(not(ismember(recommended.ISBN,lotrBooks.ISBN)),:); %Filter out LOTR books
 recommended = sortrows(recommended,'Score','descend'); %Sort recommended according to score
 
-%% Output
-figure()
-histogram(str2double(lotrRatings.Book_Rating))
-title('Histogram of LOTR books ratings')
-xlabel('Rating')
-ylabel('Number of ratings')
+%% Displayed books
+numberOfDisplayedBooks = 3;
+finalISBNs = recommended.ISBN(1:numberOfDisplayedBooks);
+booksToDisplay = table();
+
+for i = 1:numberOfDisplayedBooks
+   booksToDisplay = [booksToDisplay;books(ismember(books.ISBN,finalISBNs(i)),:)];
+end
+booksToDisplay.Score = recommended.Score(1:numberOfDisplayedBooks);
+
+fh = figure();
+fh.WindowState = 'maximized';
+for i = 1:numberOfDisplayedBooks
+    subplot(1,numberOfDisplayedBooks,i)
+    [url_img, map] = imread(string(booksToDisplay.Image_URL_L(i)));
+    imshow(url_img)
+    title(strcat(num2str(i),'. ',string(booksToDisplay.Book_Title(i))))
+    xlabel(strcat('Score: ', num2str(booksToDisplay.Score(i)),2))
+end
+
+%% Diagnostics
+% figure()
+% histogram(str2double(lotrRatings.Book_Rating))
+% title('Histogram of LOTR books ratings')
+% xlabel('Rating')
+% ylabel('Number of ratings')
+
 
 
