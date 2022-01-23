@@ -10,7 +10,18 @@ lotrBooks = books(contains(books.Book_Title,title,'IgnoreCase',true) & ...
                   contains(books.Book_Author,author,'IgnoreCase',true) & ...
                   not(contains(books.Book_Title,avoidTitle,'IgnoreCase',true)),:);
               
+lotrRatings = ratings(contains(ratings.ISBN,lotrBooks.ISBN),:);
 
+thresholdPositive = 7;
+positiveLotrRatings = lotrRatings(str2double(lotrRatings.Book_Rating)>=thresholdPositive,:);
 
+threshlodNegative = 1;
+negativeLotrRatings = lotrRatings(str2double(lotrRatings.Book_Rating)<=threshlodNegative,:);
+
+%% Pictures
+figure()
+histogram(str2double(lotrRatings.Book_Rating))
+xlabel('Rating')
+ylabel('Number of ratings')
 
 
