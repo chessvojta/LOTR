@@ -54,7 +54,7 @@ for i = 1:numberOfDisplayedBooks
     [url_img, map] = imread(string(booksToDisplay.Image_URL_L(i)));
     imshow(url_img)
     title(strcat(num2str(i),'. ',string(booksToDisplay.Book_Title(i))))
-    xlabel(strcat('Score: ', num2str(booksToDisplay.Score(i)),2))
+    xlabel(strcat('Score: ', num2str(booksToDisplay.Score(i))))
 end
 
 %% Diagnostics
