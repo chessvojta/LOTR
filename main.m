@@ -22,32 +22,37 @@ positiveLotrRatings = lotrRatings(str2double(lotrRatings.Book_Rating)>=threshold
 %negativeLotrRatings = lotrRatings(str2double(lotrRatings.Book_Rating)<=thresholdNegative,:);
 
 %% Filter users and their ratings
-posUsers = users(ismember(users.User_ID,positiveLotrRatings.User_ID),:);
+posUsers = users(ismember(users.User_ID,positiveLotrRatings.User_ID),:); %users that liked LOTR
 posUsersPosRatings = ratings(ismember(ratings.User_ID,positiveLotrRatings.User_ID) &...
                                str2double(ratings.Book_Rating)>=thresholdPositive,:);
 % positive reviews of users that liked LOTR                           
 
-%% Recommended books based on users that liked LOTR
+%% Recommend books based on users that liked LOTR
 [recommended.ISBN,ia,ic] = unique(posUsersPosRatings.ISBN); % unique ISBNs of books liked by LOTR likers
 recommended.Reads = accumarray(ic,1); % number of reviews of individual books by LOTR likers
 recommended.Rating = accumarray(ic,str2double(posUsersPosRatings.Book_Rating),[],@mean); %average rating
-recommended.Score = recommended.Rating.*log10(recommended.Reads);
-
 recommended = struct2table(recommended); % Put the data in a table
 recommended = recommended(not(ismember(recommended.ISBN,lotrBooks.ISBN)),:); %Filter out LOTR books
+
+recommended.Score = bookScore(recommended.Rating,recommended.Reads,2); %Score based on rating and reads
 recommended = sortrows(recommended,'Score','descend'); %Sort recommended according to score
 
-%% Displayed books
-numberOfDisplayedBooks = 3;
-finalISBNs = recommended.ISBN(1:numberOfDisplayedBooks);
+%% Display books
+numberOfDisplayedBooks = 3; % Top 3 - fits into a window
+numberOfDisplayedBooksConsole = 10; % Larger set to be written as a console output
+finalISBNs = recommended.ISBN(1:numberOfDisplayedBooksConsole); %Read ISBNs of best rated books
 booksToDisplay = table();
 
-for i = 1:numberOfDisplayedBooks
-   booksToDisplay = [booksToDisplay;books(ismember(books.ISBN,finalISBNs(i)),:)];
+for i = 1:numberOfDisplayedBooksConsole
+   booksToDisplay = [booksToDisplay;books(ismember(books.ISBN,finalISBNs(i)),:)]; %Read data for the best rated books
 end
-booksToDisplay.Score = recommended.Score(1:numberOfDisplayedBooks);
+booksToDisplay.Score = recommended.Score(1:numberOfDisplayedBooksConsole); %Add score value to the table
 
-fh = figure();
+for i =1:numberOfDisplayedBooksConsole
+    disp([i,booksToDisplay.Book_Title(i),booksToDisplay.Score(i)]); % Console output
+end
+    
+fh = figure(); %Display best rated books in a window
 fh.WindowState = 'maximized';
 for i = 1:numberOfDisplayedBooks
     subplot(1,numberOfDisplayedBooks,i)
