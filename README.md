@@ -61,7 +61,7 @@ This method recommends books:
 1. The Hobbit : The Enchanting Prelude to The Lord of the Rings
 2. Harry Potter and the Order of the Phoenix (Book 5)
 3. Harry Potter and the Sorcerer''s Stone (Harry Potter (Paperback))
-4. Harry Potter and the Prisoner of Azkaban (Book 3)'
+4. Harry Potter and the Prisoner of Azkaban (Book 3)
 5. Harry Potter and the Goblet of Fire (Book 4)
 6. Harry Potter and the Chamber of Secrets (Book 2)
 7. The Da Vinci Code
@@ -76,3 +76,59 @@ Pros: Relativly simple and fast.
 
 Cons: Depends on the proper choice of keywords - to avoid the Hobbit as a LOTR book, recommends generally popular books.
 
+## Method 2 
+The sceond method tries to solve the problem of books liked by general audience in method 1. It calculated independently the book score from all readers and the LOTR readers subset. The overall score is then calculated from these 2 - the idea is to choose box that are closest to maximum score by LOTR readers and minimum score by general audience.
+
+![Score of method 2](/images/method2_score.png)
+
+The MATLAB script is [method2.m](method2.m).
+
+This method recommends books:
+1. The Hobbit : The Enchanting Prelude to The Lord of the Rings
+2. Anne of Windy Poplars (Anne of Green Gables Novels (Paperback))
+3. The Hobbit: or There and Back Again
+4. Hawaii
+5. A Time to Kill
+6. Anne of Ingleside (Anne of Green Gables Novels (Paperback))
+7. The Secret Garden
+8. Harry Potter and the Order of the Phoenix (Book 5)
+9. Charlotte''s Web (Trophy Newbery)
+10. Foundation and Empire (Foundation Novels (Paperback))
+
+Result: The Hobbit is still at the top of the list, there is only one Harry Potter book left. The choice of Anne of Green Gables Novels seems interesting - it is a well-rated book that does not seem to have much in common with LOTR.
+
+Pros: Recommended books are more specific to people who liked LOTR (in theory).
+
+Cons: Heavily depends on the definition of book score, it is more complicated and slow (this might be solved with better implementation).
+
+## Method 3
+The last method exploits the idea of "finding the most simmilar book to LOTR" (in terms of user ratings). In this case, the score is calculate both from positive ratings of users that liked LOTR and negative reviews of users that disliked LOTR. In principle, this recommendation should be more robust than method 1, since it uses more data.
+
+![Score of method 3](/images/method3_score.png)
+
+The MATLAB script is [method3.m](method3.m).
+
+This method recommends books:
+1. The Hobbit : The Enchanting Prelude to The Lord of the Rings
+2. Harry Potter and the Sorcerer''s Stone (Harry Potter (Paperback))
+3. The Da Vinci Code
+4. Harry Potter and the Order of the Phoenix (Book 5)
+5. Harry Potter and the Chamber of Secrets (Book 2)
+6. A Time to Kill
+7. To Kill a Mockingbird
+8. Memoirs of a Geisha (ISBN not in books list)
+9. Interview with the Vampire
+10. The Lovely Bones: A Novel
+
+Result: The Hobbit is still at the top of the list, and Harry Potter is (unfortunately) back. 
+
+Pros: Choice of books should be more robust (in theory). Code is relativly fast.
+
+Cons: The recommended books are (as in method 1) popular among general public. There seems to be little connection between these books and LOTR.
+
+# Conclusions
+- Among the tested methods, the method 2 seems to give the best results - the books are well-rated and not so much popular among general audience
+- Yet it seems that there should be more "connection" between the books
+  - The recommendation would be better if books had some "tags", such as "fantasy", "adventure"... 
+  - Some algorithm could evaluate simmilarity between books (neural network)?
+- If I had more data on the user - age, sex, location, other books they like - I could try to build a regression model - expected rating based on user and book
