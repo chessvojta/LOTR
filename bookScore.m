@@ -32,8 +32,16 @@ elseif type == 2
 elseif type == 3
     normalizedReads = 10.*(log10(reads)./max(log10(reads))); % max = 10
     score = sqrt(rating.*normalizedReads);
-        
-else
+
+% Type 4
+% normalized so that max(score) = 10
+% depends on the set of books
+% lin scale and geomean
+elseif type == 4
+    normalizedReads = 10.*(reads./max(reads)); % max = 10
+    score = sqrt(rating.*normalizedReads);    
+    
+else    
     error('Unknown scoring type')
 end
 end

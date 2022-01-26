@@ -1,6 +1,7 @@
 %% Method 0
-% just recommend the best books
-% for reference
+% Just recommend the best books.
+%
+% For reference purposes only.
 
 close all
 clear all
@@ -42,11 +43,11 @@ for i = 1:numberOfDisplayedBooks
 end
 
 %% Diagnostics
-figure()
-histogram(str2double(ratings.Book_Rating))
-title('Histogram of all ratings')
-xlabel('Rating')
-ylabel('Number of ratings')
+% figure()
+% histogram(str2double(ratings.Book_Rating))
+% title('Histogram of all ratings')
+% xlabel('Rating')
+% ylabel('Number of ratings')
 
 
 

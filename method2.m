@@ -1,3 +1,8 @@
+%% Method 2
+% People who liked LOTR also liked... and it is not popular in general
+%
+% Adapting scoring so that the most popular books are avoided.
+
 close all
 clear all
 
@@ -18,9 +23,6 @@ lotrRatings = ratings(ismember(ratings.ISBN,lotrBooks.ISBN),:); % all ratings of
 thresholdPositive = 7;
 positiveLotrRatings = lotrRatings(str2double(lotrRatings.Book_Rating)>=thresholdPositive,:);
 
-%thresholdNegative = 1;
-%negativeLotrRatings = lotrRatings(str2double(lotrRatings.Book_Rating)<=thresholdNegative,:);
-
 %% Filter users and their ratings
 posUsers = users(ismember(users.User_ID,positiveLotrRatings.User_ID),:); %users that liked LOTR
 posUsersPosRatings = ratings(ismember(ratings.User_ID,positiveLotrRatings.User_ID) &...
@@ -34,7 +36,23 @@ recommended.Rating = accumarray(ic,str2double(posUsersPosRatings.Book_Rating),[]
 recommended = struct2table(recommended); % Put the data in a table
 recommended = recommended(not(ismember(recommended.ISBN,lotrBooks.ISBN)),:); %Filter out LOTR books
 
-recommended.Score = bookScore(recommended.Rating,recommended.Reads,2); %Score based on rating and reads
+recommended.LotrScore = bookScore(recommended.Rating,recommended.Reads); %Score based on rating and reads
+recommended = recommended(recommended.Reads>1,:); %Filter to reduce computation time
+recommended = sortrows(recommended,'LotrScore','descend');
+recommended.Score = NaN(length(recommended.LotrScore));
+
+%% Adapt scoring
+[general.ISBN,ia,ic] = unique(ratings.ISBN); % unique ISBNs of ratings
+general.Reads = accumarray(ic,1); % number of reviews of individual books
+general.Rating = accumarray(ic,str2double(ratings.Book_Rating),[],@mean); %average rating
+general = struct2table(general); % Put the data in a table
+general.Score = bookScore(general.Rating,general.Reads);
+
+for i = 1:length(recommended.ISBN)
+    recommended.GeneralScore(i) = general(ismember(general.ISBN,recommended.ISBN(i)),:).Score;
+end
+
+recommended.Score = recommended.LotrScore + 10 -recommended.GeneralScore; % 1-norm of a vector starting in [0 10]
 recommended = sortrows(recommended,'Score','descend'); %Sort recommended according to score
 
 %% Display books
@@ -69,5 +87,14 @@ end
 % xlabel('Rating')
 % ylabel('Number of ratings')
 
-
+figure()
+plot(recommended.LotrScore,recommended.GeneralScore,'b.')
+hold on
+plot(recommended.LotrScore(1:numberOfDisplayedBooksConsole),recommended.GeneralScore(1:numberOfDisplayedBooksConsole),'r+')
+axis equal
+grid on
+xlim([0 10])
+ylim([0 10])
+xlabel('Score by LOTR likers')
+ylabel('Score by general readers')
 
