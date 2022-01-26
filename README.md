@@ -13,7 +13,7 @@ Problem: Book recommendations - „I like Lord of the Rings, what else should I 
   - Ignored for now as these ISBNs are all different and their number is negligible.
 - Not all ISBNs in "ratings" are listed in "books".
   - This will be fixed only where needed.
-- Users tend to give either a bad rating of 0 or a very good rating of 8 - 10. There are far less ratings in the middle of the scale.
+- Users tend to give either a bad rating of 0 or a good rating of 5 - 10. There are far less ratings in the 1-4 range.
 
 ![Histogram of all reviews](/images/all_ratings_histogram.png)
 
