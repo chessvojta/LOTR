@@ -24,29 +24,61 @@ lotrRatings = ratings(ismember(ratings.ISBN,lotrBooks.ISBN),:); % all ratings of
 thresholdPositive = 7;
 positiveLotrRatings = lotrRatings(str2double(lotrRatings.Book_Rating)>=thresholdPositive,:);
 
-%thresholdNegative = 1;
-%negativeLotrRatings = lotrRatings(str2double(lotrRatings.Book_Rating)<=thresholdNegative,:);
+thresholdNegative = 1;
+negativeLotrRatings = lotrRatings(str2double(lotrRatings.Book_Rating)<=thresholdNegative,:);
 
 %% Filter users and their ratings
 posUsers = users(ismember(users.User_ID,positiveLotrRatings.User_ID),:); %users that liked LOTR
 posUsersPosRatings = ratings(ismember(ratings.User_ID,positiveLotrRatings.User_ID) &...
                                str2double(ratings.Book_Rating)>=thresholdPositive,:);
-% positive reviews of users that liked LOTR                           
+% positive reviews of users that liked LOTR
 
-%% Recommend books based on users that liked LOTR
+negUsers = users(ismember(users.User_ID,negativeLotrRatings.User_ID),:); %users that disliked LOTR
+negUsersNegRatings = ratings(ismember(ratings.User_ID,negativeLotrRatings.User_ID) &...
+                               str2double(ratings.Book_Rating)<=thresholdNegative,:);
+% negative reviews of users that disliked LOTR
+
+negUsersNegRatings.Book_Rating = 10 - str2double(negUsersNegRatings.Book_Rating);
+posUsersPosRatings.Book_Rating = str2double(posUsersPosRatings.Book_Rating);
+
+%% Recommend books based on users that liked and disliked LOTR
 [recommended.ISBN,ia,ic] = unique(posUsersPosRatings.ISBN); % unique ISBNs of books liked by LOTR likers
 recommended.Reads = accumarray(ic,1); % number of reviews of individual books by LOTR likers
-recommended.Rating = accumarray(ic,str2double(posUsersPosRatings.Book_Rating),[],@mean); %average rating
+recommended.Rating = accumarray(ic,posUsersPosRatings.Book_Rating,[],@mean); %average rating
 recommended = struct2table(recommended); % Put the data in a table
+recommended = recommended(recommended.Reads>1,:); %Filter to reduce computation time
 recommended = recommended(not(ismember(recommended.ISBN,lotrBooks.ISBN)),:); %Filter out LOTR books
+recommended.PosScore = bookScore(recommended.Rating,recommended.Reads); %Score based on rating and reads
 
-recommended.Score = bookScore(recommended.Rating,recommended.Reads,2); %Score based on rating and reads
+[disliked.ISBN,ia,ic] = unique(negUsersNegRatings.ISBN); % unique ISBNs of books disliked by LOTR dislikers
+disliked.Reads = accumarray(ic,1); % number of reviews of individual books by LOTR dislikers
+disliked.Rating = accumarray(ic,negUsersNegRatings.Book_Rating,[],@mean);
+disliked = struct2table(disliked); 
+disliked = disliked(disliked.Reads>1,:); 
+disliked = disliked(not(ismember(disliked.ISBN,lotrBooks.ISBN)),:); 
+disliked.Score = bookScore(disliked.Rating,disliked.Reads);
+
+recommended.NegScore = NaN(length(recommended.PosScore),1);
+
+for i = 1:length(recommended.ISBN)
+    try
+        recommended.NegScore(i) = disliked(ismember(disliked.ISBN,recommended.ISBN(i)),:).Score;
+    catch
+    end
+end
+
+recommended.Score = (recommended.PosScore+recommended.NegScore)./2;
+recommended = recommended(not(isnan(recommended.Score)),:);
 recommended = sortrows(recommended,'Score','descend'); %Sort recommended according to score
+
 
 %% Display books
 numberOfDisplayedBooks = 3; % Top 3 - fits into a window
 numberOfDisplayedBooksConsole = 10; % Larger set to be written as a console output
 finalISBNs = recommended.ISBN(1:numberOfDisplayedBooksConsole); %Read ISBNs of best rated books
+
+finalISBNs(ismember(finalISBNs,'0679781587')) = {'037570440X'};% Fix for missing 
+
 booksToDisplay = table();
 
 for i = 1:numberOfDisplayedBooksConsole
@@ -69,11 +101,16 @@ for i = 1:numberOfDisplayedBooks
 end
 
 %% Diagnostics
-% figure()
-% histogram(str2double(lotrRatings.Book_Rating))
-% title('Histogram of LOTR books ratings')
-% xlabel('Rating')
-% ylabel('Number of ratings')
+figure()
+plot(recommended.PosScore,recommended.NegScore,'b.')
+hold on
+plot(recommended.PosScore(1:numberOfDisplayedBooksConsole),recommended.NegScore(1:numberOfDisplayedBooksConsole),'r+')
+axis equal
+grid on
+xlim([0 10])
+ylim([0 10])
+xlabel('Score by LOTR likers')
+ylabel('Inverted score by LOTR dislikers')
 
 
 

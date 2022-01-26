@@ -81,12 +81,6 @@ for i = 1:numberOfDisplayedBooks
 end
 
 %% Diagnostics
-% figure()
-% histogram(str2double(lotrRatings.Book_Rating))
-% title('Histogram of LOTR books ratings')
-% xlabel('Rating')
-% ylabel('Number of ratings')
-
 figure()
 plot(recommended.LotrScore,recommended.GeneralScore,'b.')
 hold on
